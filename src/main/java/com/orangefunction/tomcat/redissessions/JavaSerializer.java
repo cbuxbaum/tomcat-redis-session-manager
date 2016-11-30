@@ -40,14 +40,8 @@ public class JavaSerializer implements Serializer {
       oos.flush();
       serialized = bos.toByteArray();
     }
-
-    MessageDigest digester = null;
-    try {
-      digester = MessageDigest.getInstance("MD5");
-    } catch (NoSuchAlgorithmException e) {
-      log.error("Unable to get MessageDigest instance for MD5");
-    }
-    return digester.digest(serialized);
+    
+    return serialized;
   }
 
   @Override
