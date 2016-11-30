@@ -13,6 +13,8 @@ import org.apache.juli.logging.LogFactory;
 public class RedisSession extends StandardSession {
 
   private final Log log = LogFactory.getLog(RedisSession.class);
+  private Boolean sessionIsPersisted = false;
+  private SessionSerializationMetadata sessionSerializatonMetadata = new SessionSerializationMetadata();
 
   protected static Boolean manualDirtyTrackingSupportEnabled = false;
 
@@ -47,32 +49,42 @@ public class RedisSession extends StandardSession {
     changedAttributes = new HashMap<>();
     dirty = false;
   }
+  
+public Object getAttribute(String key)
+{
+   Object o = super.getAttribute(key);
+   return o;
+}
+  
+
+  
 
   @Override
   public void setAttribute(String key, Object value) {
-    if (manualDirtyTrackingSupportEnabled && manualDirtyTrackingAttributeKey.equals(key)) {
-      dirty = true;
-      return;
-    }
-
     Object oldValue = getAttribute(key);
     super.setAttribute(key, value);
-
+     if (manualDirtyTrackingSupportEnabled && manualDirtyTrackingAttributeKey.equals(key)) {
+        dirty = true;
+     return;
+    }
     if ( (value != null || oldValue != null)
-         && ( value == null && oldValue != null
-              || oldValue == null && value != null
-              || !value.getClass().isInstance(oldValue)
-              || !value.equals(oldValue) ) ) {
-      if (this.manager instanceof RedisSessionManager
-          && ((RedisSessionManager)this.manager).getSaveOnChange()) {
-        try {
-          ((RedisSessionManager)this.manager).save(this, true);
-        } catch (IOException ex) {
-          log.error("Error saving session on setAttribute (triggered by saveOnChange=true): " + ex.getMessage());
-        }
-      } else {
-        changedAttributes.put(key, value);
-      }
+          && ( value == null && oldValue != null
+               || oldValue == null && value != null
+               || !value.getClass().isInstance(oldValue)
+               || !value.equals(oldValue) )) {
+         if (this.manager instanceof RedisSessionManager
+           && ((RedisSessionManager)this.manager).getSaveOnChange()) {
+
+
+         try
+         {
+           ((RedisSessionManager)this.manager).save(this, true);
+         } catch (IOException ex) {
+           log.error("Error saving session on setAttribute (triggered by saveOnChange=true): " + ex.getMessage());
+	}
+       } else {
+         changedAttributes.put(key, value);
+       }
     }
   }
 
@@ -116,5 +128,39 @@ public class RedisSession extends StandardSession {
     super.readObjectData(in);
     this.setCreationTime(in.readLong());
   }
+
+/**
+ * @return the sessionIsPersisted
+ */
+protected Boolean getSessionIsPersisted()
+{
+	return sessionIsPersisted;
+}
+
+/**
+ * @param sessionIsPersisted the sessionIsPersisted to set
+ */
+protected void setSessionIsPersisted(Boolean sessionIsPersisted)
+{
+	this.sessionIsPersisted = sessionIsPersisted;
+}
+
+/**
+ * @return the sessionSerializatonMetadata
+ */
+protected SessionSerializationMetadata getSessionSerializatonMetadata()
+{
+	return sessionSerializatonMetadata;
+}
+
+/**
+ * @param sessionSerializatonMetadata the sessionSerializatonMetadata to set
+ */
+protected void setSessionSerializatonMetadata(SessionSerializationMetadata sessionSerializatonMetadata)
+{
+	this.sessionSerializatonMetadata = sessionSerializatonMetadata;
+}
+  
+  
 
 }

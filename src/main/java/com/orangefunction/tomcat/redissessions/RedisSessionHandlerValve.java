@@ -25,7 +25,7 @@ public class RedisSessionHandlerValve extends ValveBase {
     try {
       getNext().invoke(request, response);
     } finally {
-      manager.afterRequest();
+      manager.afterRequest(request.getSession());
     }
   }
 }
